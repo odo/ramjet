@@ -1,0 +1,9 @@
+{application, ramjet,
+ [
+  {description, ""},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [ kernel, stdlib ]},
+  {mod, { ramjet_app, []}},
+  {env, []}
+ ]}.
