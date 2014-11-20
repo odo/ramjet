@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 -export([start/2, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
--record(state, {tasks :: list(), task_state :: any() }).
+-record(state, {tasks :: list(), task_state :: any(), handler :: atom() }).
 
 %% == usage ==
 %% 1> ponos_session:start([{print, "Hello"}, {wait, 1000}, {print, "World"}, print_call_count], 0).
@@ -23,15 +23,16 @@
 
 %% Public API
 
-start(Tasks, InitState) ->
-    gen_server:start_link(?MODULE, [Tasks, InitState], []).
+start(Tasks, Handler) ->
+    gen_server:start_link(?MODULE, [Tasks, Handler], []).
 
 %% Callbacks
 
-init([Tasks, InitState]) ->
+init([Tasks, Handler]) ->
     random:seed(os:timestamp()),
     self() ! next_task,
-    {ok, #state{ task_state = InitState, tasks = Tasks}}.
+    TaskState = Handler:init(),
+    {ok, #state{ task_state = TaskState, tasks = Tasks, handler = Handler}}.
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -43,35 +44,23 @@ handle_cast(_Msg, State) ->
 
 handle_info(next_task, State = #state{tasks = []}) ->
      {stop, normal, State};
-handle_info(next_task, #state{task_state = TaskState, tasks = [NextTask | Tasks]}) ->
+handle_info(next_task, State = #state{task_state = TaskState, handler = Handler, tasks = [NextTask | Tasks]}) ->
     Command = element(1, NextTask),
     Before  = os:timestamp(),
-    {Outcome, NewTaskState}   =  handle_task(NextTask, TaskState),
+    {Outcome, NewTaskState}   =  Handler:handle_task(NextTask, TaskState),
     Elapsed = timer:now_diff(os:timestamp(), Before) / 1000,
     case Outcome of
         ok ->
-            ramjet_stats:record(Command, Elapsed, ramjet_stats);
+            ramjet_stats:record(Command, Elapsed);
         error ->
-            ramjet_stats:record(Command, error, ramjet_stats)
+            ramjet_stats:record(Command, error)
     end,
 
     self() ! next_task,
-    {noreply, #state{task_state = NewTaskState, tasks = Tasks}}.
+    {noreply, State#state{task_state = NewTaskState, tasks = Tasks}}.
 
 terminate(_Reason, _State) ->
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-
-handle_task({wait, Millisecords}, TaskState) ->
-    timer:sleep(round(random:uniform() * Millisecords)),
-    {ok, TaskState + 1};
-
-handle_task({print, Data}, TaskState) ->
-    io:format("~p\n", [Data]),
-    {ok, TaskState + 1};
-
-handle_task({print_call_count}, TaskState) ->
-    io:format("Call count: ~p\n", [TaskState]),
-    {ok, TaskState + 1}.

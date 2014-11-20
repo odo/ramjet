@@ -21,11 +21,12 @@ start_link() ->
 
 init([]) ->
     Metrics = ramjet:config(metrics),
+    StatsInterval = ramjet:config(stats_interval),
     Stats = {
       ramjet_stats, {
         ramjet_stats,
         start_link,
-        [Metrics, 10000]
+        [Metrics, StatsInterval]
        },
         permanent,
         2000,
