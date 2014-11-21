@@ -6,4 +6,3 @@ log/
 .DS_Store
 erl_crash.dump
 tags
-tests/*
