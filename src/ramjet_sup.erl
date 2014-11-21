@@ -23,6 +23,17 @@ init([]) ->
     Metrics = ramjet:config(metrics),
     StatsInterval = ramjet:config(stats_interval),
 
+    Monitor = {
+      ramjet_monitor, {
+        ramjet_monitor,
+        start_link,
+        []
+       },
+        permanent,
+        2000,
+        worker,
+        [ramjet_monitor]},
+
     Stats = {
       ramjet_stats, {
         ramjet_stats,
@@ -48,9 +59,9 @@ init([]) ->
     Children =
     case ramjet:config(report) of
         true ->
-            [Stats, SessionSup];
+            [Monitor, Stats, SessionSup];
         false ->
-            [SessionSup]
+            [Monitor, SessionSup]
     end,
 
     {ok, { {one_for_one, 5, 10}, Children} }.
