@@ -3,20 +3,20 @@
 -export([start/0, start_slave/0, apply_on_all_nodes/3, config/1]).
 
 start() ->
-    application:start(bear),
-    application:start(folsom),
-    application:start(ponos),
-    application:set_env(ramjet, report, true),
-    application:start(ramjet),
+    ok = application:start(bear),
+    ok = application:start(folsom),
+    ok = application:start(ponos),
+    ok = application:set_env(ramjet, report, true),
+    ok = application:start(ramjet),
     connect_slaves(),
     start_sessions().
 
 start_slave() ->
-    application:start(bear),
-    application:start(folsom),
-    application:start(ponos),
-    application:set_env(ramjet, report, false),
-    application:start(ramjet),
+    ok = application:start(bear),
+    ok = application:start(folsom),
+    ok = application:start(ponos),
+    ok = application:set_env(ramjet, report, false),
+    ok = application:start(ramjet),
     io:format("slave ready.\n", []).
 
 connect_slaves() ->
