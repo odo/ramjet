@@ -68,10 +68,10 @@ plot2 <- qplot(elapsed, starts / window, data = b$sessions,
                  main = "Sessions") +
 
                  geom_point(aes(y = starts / window, colour = "starts"), size=2.0) +
-                 geom_line( aes(y = starts / window, colour = "starts"), size=0.2) +
+                 geom_line( aes(y = starts / window, colour = "starts"), size=0.1) +
 
-                 geom_smooth(aes(y = running, colour = "running"), size=0.5) +
                  geom_point(aes(y = running, colour = "running"), size=2.0) +
+                 geom_line( aes(y = running, colour = "running"), size=0.1) +
 
                  scale_colour_manual("Starts", values = c("#188125", "#FF665F"))
 
@@ -128,6 +128,6 @@ print(plot2, vp = vplayout(2,1))
 print(plot3, vp = vplayout(3,1))
 print(plot4, vp = vplayout(4,1))
 print(plot5, vp = vplayout(5,1))
-print(plot5, vp = vplayout(6,1))
+print(plot6, vp = vplayout(6,1))
 
 dev.off()
