@@ -27,6 +27,7 @@ connect_slave(NodeName) ->
     pong = net_adm:ping(NodeName).
 
 start_sessions() ->
+    io:format("~p: starting sessions\n", [?MODULE]),
     LoadGeneratorCount = config(load_generator_count),
     Names              = [generator_name(ID) || ID <- lists:seq(1, LoadGeneratorCount)],
     StartSession       = fun() ->

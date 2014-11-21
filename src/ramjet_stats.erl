@@ -36,6 +36,7 @@ start_link(Metrics, DumpInterval) ->
 %% Callbacks
 
 init([Metrics, DumpInterval]) ->
+    io:format("~p: starting with metrics:~p\n", [?MODULE, Metrics]),
     schedule_dump(DumpInterval),
     reset_metrics(Metrics, DumpInterval),
     CSVDir = prepare_dir(),
