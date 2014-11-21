@@ -24,6 +24,10 @@ load_benchmark <- function(Dir, Tstart, Tend)
     summary <- read.csv(sprintf("%s/%s", Dir, "summary.csv"),
                         colClasses=rep("numeric", 5))
 
+    ## Load up session data
+    sessions <- read.csv(sprintf("%s/%s", Dir, "sessions.csv"),
+                        colClasses=rep("numeric", 4))
+
     ## Get a list of latency files
     latencies <- lapply(list.files(path = Dir, pattern = "_latencies.csv",
                                    full.names = TRUE),
@@ -36,11 +40,13 @@ load_benchmark <- function(Dir, Tstart, Tend)
     ## Trim values off that are outside our range of times
     if (is.null(Tstart)) { Tstart = 0 }
     if (is.null(Tend)) { Tend = max(summary$elapsed) }
+    if (is.null(Tend)) { Tend = max(sessions$elapsed) }
 
     print(Tstart)
     print(Tend)
 
     return (list(summary = summary[summary$elapsed >= Tstart & summary$elapsed <= Tend,],
+                 sessions = sessions[sessions$elapsed >= Tstart & sessions$elapsed <= Tend,],
                  latencies = latencies[latencies$elapsed >= Tstart & latencies$elapsed <= Tend,]))
   }
 

@@ -8,7 +8,7 @@ init() ->
     0.
 
 handle_task({wait, Millisecords}, TaskState) ->
-    timer:sleep(round(random:uniform() * Millisecords)),
+    timer:sleep((round(Millisecords - random:uniform() * Millisecords / 2))),
     {ok, TaskState + 1};
 
 handle_task({print, Data}, TaskState) ->
@@ -17,5 +17,7 @@ handle_task({print, Data}, TaskState) ->
 
 handle_task({print_call_count}, TaskState) ->
     io:format("Call count: ~p\n", [TaskState]),
-    {ok, TaskState + 1}.
+    {ok, TaskState + 1};
 
+handle_task({noop}, TaskState) ->
+    {ok, TaskState}.

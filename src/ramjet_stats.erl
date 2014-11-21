@@ -1,7 +1,7 @@
 -module(ramjet_stats).
 
 -behaviour(gen_server).
--export([record/2]).
+-export([record/2, ensure_delete/1]).
 -export([start_link/2, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -compile({no_auto_import,[now/0]}).
@@ -23,7 +23,11 @@ record(Metric, error) ->
     folsom_metrics:notify({error_counter_name(Metric), {inc, 1}});
 
 record(Metric, Duration) when is_number(Duration) ->
-    folsom_metrics:notify({histogram_name(Metric), Duration}),
+    try
+        folsom_metrics:notify({histogram_name(Metric), Duration})
+    catch
+        _:{badmatch, []} -> noop
+    end,
     folsom_metrics:notify({counter_name(Metric), {inc, 1}}).
 
 start_link(Metrics, DumpInterval) ->
@@ -76,15 +80,18 @@ csv_dir() ->
     "tests/" ++ Dir.
 
 reset_metrics(Metrics, DumpInterval) ->
-    [reset_metric(M, DumpInterval) || M <- Metrics].
+    [reset_metric(M, DumpInterval) || M <- [ramjet_session_start | Metrics] ].
 
 reset_metric(Metric, DumpInterval) ->
-    ensure_delete(histogram_name(Metric)),
-    ensure_delete(counter_name(Metric)),
-    ensure_delete(error_counter_name(Metric)),
-    folsom_metrics:new_histogram(histogram_name(Metric), slide, round(DumpInterval / 1000 * 2)),
-    folsom_metrics:new_counter(counter_name(Metric)),
-    folsom_metrics:new_counter(error_counter_name(Metric)).
+    ensure_delete_on_all_nodes(histogram_name(Metric)),
+    ensure_delete_on_all_nodes(counter_name(Metric)),
+    ensure_delete_on_all_nodes(error_counter_name(Metric)),
+    ramjet:apply_on_all_nodes(folsom_metrics, new_histogram, [histogram_name(Metric), slide, round(DumpInterval / 1000 * 2)]),
+    ramjet:apply_on_all_nodes(folsom_metrics, new_counter, [counter_name(Metric)]),
+    ramjet:apply_on_all_nodes(folsom_metrics, new_counter, [error_counter_name(Metric)]).
+
+ensure_delete_on_all_nodes(MetricName) ->
+    ramjet:apply_on_all_nodes(ramjet_stats, ensure_delete, [MetricName]).
 
 ensure_delete(MetricName) ->
     try folsom_metrics:delete_metric(MetricName)
@@ -114,10 +121,10 @@ dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, cs
 
     DumpLine =
     fun(Metric) ->
-        Count = folsom_metrics:get_metric_value(counter_name(Metric)),
+        Count = counter_sum_from_all_nodes(counter_name(Metric)),
         case Count > 0 of
             true ->
-                Error       = folsom_metrics:get_metric_value(error_counter_name(Metric)),
+                Error       = counter_sum_from_all_nodes(error_counter_name(Metric)),
                 Histogram   = folsom_metrics:get_histogram_statistics(histogram_name(Metric)),
                 Percentiles = proplists:get_value(percentile, Histogram),
                 Min         = proplists:get_value(min, Histogram),
@@ -154,15 +161,24 @@ dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, cs
         end,
         {0, 0},
         Lines),
-    SummaryLine = io_lib:format("~.8f, ~.8f, ~p, ~p, ~p\n", [Elapsed, Window, TotalCount, TotalCount - TotalErrors, TotalErrors]),
-    file:write_file(CSVDir ++ "/summary.csv", SummaryLine, [append]).
+    SummaryLine   = io_lib:format("~.8f, ~.8f, ~p, ~p, ~p\n", [Elapsed, Window, TotalCount, TotalCount - TotalErrors, TotalErrors]),
+    file:write_file(CSVDir ++ "/summary.csv", SummaryLine, [append]),
+    SessionStarts  = counter_sum_from_all_nodes(counter_name(ramjet_session_start)),
+    SessionRunning = lists:sum(ramjet:apply_on_all_nodes(ramjet_session_sup, child_count, [])),
+    SessionLine    = io_lib:format("~.8f, ~.8f, ~p, ~p\n", [Elapsed, Window, SessionStarts, SessionRunning]),
+    file:write_file(CSVDir ++ "/sessions.csv", SessionLine, [append]).
 
 write_csv_headers(Metrics, CSVDir) ->
     SummaryHeader = "elapsed, window, total, successful, failed\n",
     file:write_file(CSVDir ++ "/summary.csv", SummaryHeader),
+    SessionHeader = "elapsed, window, starts, running\n",
+    file:write_file(CSVDir ++ "/sessions.csv", SessionHeader),
     StatsHeader   = "elapsed, window, n, min, mean, median, 95th, 99th, 99_9th, max, errors\n",
     [file:write_file(CSVDir ++ "/" ++ atom_to_list(Metric) ++ "_latencies.csv", StatsHeader)
      || Metric <- Metrics].
 
 now() ->
     os:timestamp().
+
+counter_sum_from_all_nodes(CounterName) ->
+    lists:sum(ramjet:apply_on_all_nodes(folsom_metrics, get_metric_value, [CounterName])).

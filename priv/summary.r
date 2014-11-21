@@ -32,7 +32,7 @@ if (!is.null(opt$help))
 
 # Initialize defaults for opt
 if (is.null(opt$width))   { opt$width   = 1280 }
-if (is.null(opt$height))  { opt$height  = 960 }
+if (is.null(opt$height))  { opt$height  = 1280 }
 if (is.null(opt$indir))   { opt$indir  = "current"}
 if (is.null(opt$outfile)) { opt$outfile = file.path(opt$indir, "summary.png") }
 if (is.null(opt$ylabel1stgraph)) { opt$ylabel1stgraph = "Op/sec" }
@@ -62,6 +62,18 @@ plot1 <- qplot(elapsed, successful / window, data = b$summary,
 
                 scale_colour_manual("Response", values = c("#FF665F", "#188125"))
 
+plot2 <- qplot(elapsed, starts / window, data = b$sessions,
+                 geom = c("point"),
+                 xlab = "Elapsed Secs", ylab = opt$ylabel1stgraph,
+                 main = "Sessions") +
+
+                 geom_point(aes(y = starts / window, colour = "starts"), size=2.0) +
+                 geom_line( aes(y = starts / window, colour = "starts"), size=0.2) +
+
+                 geom_smooth(aes(y = running, colour = "running"), size=0.5) +
+                 geom_point(aes(y = running, colour = "running"), size=2.0) +
+
+                 scale_colour_manual("Starts", values = c("#188125", "#FF665F"))
 
 # Setup common elements of the latency plots
 latency_plot <- ggplot(b$latencies, aes(x = elapsed)) +
@@ -69,7 +81,7 @@ latency_plot <- ggplot(b$latencies, aes(x = elapsed)) +
                    labs(x = "Elapsed Secs", y = "Latency (ms)")
 
 # Plot median, mean and 95th percentiles
-plot2 <- latency_plot + labs(title = "Mean, Median, and 95th Percentile Latency") +
+plot3 <- latency_plot + labs(title = "Mean, Median, and 95th Percentile Latency") +
             geom_smooth(aes(y = median, color = "median"), size=0.5) +
             geom_point(aes(y = median, color = "median"), size=2.0) +
 
@@ -85,7 +97,7 @@ plot2 <- latency_plot + labs(title = "Mean, Median, and 95th Percentile Latency"
             #                 labels = c("95th", "Mean", "Median"))
 
 # Plot 99th percentile
-plot3 <- latency_plot + labs(title = "99th Percentile Latency") +
+plot4 <- latency_plot + labs(title = "99th Percentile Latency") +
             geom_smooth(aes(y = X99th, color = "99th"), size=0.5) +
             geom_point(aes(y = X99th, color = "99th"), size=2.0) +
             scale_colour_manual("Percentile", values = c("#FF665F", "#009D91"))
@@ -94,20 +106,20 @@ plot3 <- latency_plot + labs(title = "99th Percentile Latency") +
             #                 labels = c("99.9th", "99th"))
 
 # Plot 99.9th percentile
-plot4 <- latency_plot + labs(title = "99.9th Percentile Latency") +
+plot5 <- latency_plot + labs(title = "99.9th Percentile Latency") +
             geom_smooth(aes(y = X99_9th, color = "99.9th"), size=0.5) +
             geom_point(aes(y = X99_9th, color = "99.9th"), size=2.0) +
             scale_colour_manual("Percentile", values = c("#FF665F", "#009D91", "#FFA700"))
 
 # Plot 100th percentile
-plot5 <- latency_plot + labs(title = "Maximum Latency") +
+plot6 <- latency_plot + labs(title = "Maximum Latency") +
             geom_smooth(aes(y = max, color = "max"), size=0.5) +
             geom_point(aes(y = max, color = "max"), size=2.0) +
             scale_colour_manual("Percentile", values = c("#FF665F", "#009D91", "#FFA700"))
 
 grid.newpage()
 
-pushViewport(viewport(layout = grid.layout(5, 1)))
+pushViewport(viewport(layout = grid.layout(6, 1)))
 
 vplayout <- function(x,y) viewport(layout.pos.row = x, layout.pos.col = y)
 
@@ -116,5 +128,6 @@ print(plot2, vp = vplayout(2,1))
 print(plot3, vp = vplayout(3,1))
 print(plot4, vp = vplayout(4,1))
 print(plot5, vp = vplayout(5,1))
+print(plot5, vp = vplayout(6,1))
 
 dev.off()
