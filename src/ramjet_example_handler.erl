@@ -16,5 +16,5 @@ handle_task({wait, Millisecords}, TaskState) ->
     {ok, TaskState + 1};
 
 handle_task({print_call_count}, TaskState) ->
-    io:format("Call count: ~p\n", [TaskState]),
+    io:format("~p: Call count: ~p\n", [self(), TaskState]),
     {ok, TaskState + 1}.
