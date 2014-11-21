@@ -13,7 +13,6 @@ start_link(Tasks, Handler) ->
 %% Callbacks
 
 init([Tasks, Handler]) ->
-    random:seed(os:timestamp()),
     self() ! next_task,
     TaskState = Handler:init(),
     ramjet_stats:record(ramjet_session_start, 0),
