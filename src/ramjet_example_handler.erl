@@ -5,19 +5,16 @@
 -behaviour(ramjet_handler).
 
 init() ->
+    random:seed(os:timestamp()),
     0.
 
 handle_task({wait, Millisecords}, TaskState) ->
-    timer:sleep((round(Millisecords - random:uniform() * Millisecords / 2))),
-    {ok, TaskState + 1};
-
-handle_task({print, Data}, TaskState) ->
-    io:format("~p\n", [Data]),
+    WaitFor = (round(
+        Millisecords + (random:uniform() * Millisecords) - Millisecords / 2
+    )),
+    timer:sleep(WaitFor),
     {ok, TaskState + 1};
 
 handle_task({print_call_count}, TaskState) ->
     io:format("Call count: ~p\n", [TaskState]),
-    {ok, TaskState + 1};
-
-handle_task({noop}, TaskState) ->
-    {ok, TaskState}.
+    {ok, TaskState + 1}.
