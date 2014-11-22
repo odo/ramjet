@@ -28,11 +28,11 @@ connect_slave(NodeName) ->
 
 start_sessions() ->
     io:format("~p: starting sessions\n", [?MODULE]),
+    Tasks              = config(tasks),
+    Handler            = config(handler),
     LoadGeneratorCount = config(load_generator_count),
     Names              = [generator_name(ID) || ID <- lists:seq(1, LoadGeneratorCount)],
-    StartSession       = fun() ->
-        ramjet_session_sup:start_child(config(tasks), config(handler))
-    end,
+    StartSession       = fun() -> ramjet_session_sup:start_child(Tasks, Handler) end,
     LoadSpec           = apply(ponos_load_specs, config(load_fun), config(load_fun_args)),
     Options            = [{duration, config(load_duration)}, {auto_init, false}],
     Args               = [
