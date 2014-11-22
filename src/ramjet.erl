@@ -12,12 +12,12 @@ start() ->
     start_sessions().
 
 start_slave() ->
-    ok = application:start(bear),
-    ok = application:start(folsom),
-    ok = application:start(ponos),
-    ok = application:set_env(ramjet, report, false),
-    ok = application:start(ramjet),
-    io:format("slave ready.\n", []).
+    application:start(bear),
+    application:start(folsom),
+    application:start(ponos),
+    application:set_env(ramjet, report, false),
+    application:start(ramjet),
+    io:format("slave ready on ~p.\n", [host()]).
 
 connect_slaves() ->
     [connect_slave(N) || N <- config(slave_nodes)].
@@ -65,3 +65,7 @@ generator_name(ID) ->
 
 node_name(Host) ->
     list_to_atom("ramjet_slave@" ++ atom_to_list(Host)).
+
+host() ->
+    [_, Host] = re:split(atom_to_list(node()), "@"),
+    list_to_atom(binary_to_list(Host)).
