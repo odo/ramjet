@@ -105,6 +105,10 @@ The panels below show different percentiles of latencies for every type of task.
 In the example we see a maximum throughput of 100 ops with no errors, a sawtooth - like spawning and a "damped" shape of the total sessions metric due to the random element in our waiting task.
 As expected latency for the `print_call_count` is 0 and for `wait` it's a uniform distribution beween 2.5 s and 7.5 s.
 
+As the latency of the `wait` task is not very interesting and might screw up the scaling of the axes you might ignore it in the config file:
+
+`{ no_stats_for, [wait] },`
+
 ## Rolling your own
 
 To run tests with your own handler and config file, you can pass ramjet a set of include paths and the location of your config file:

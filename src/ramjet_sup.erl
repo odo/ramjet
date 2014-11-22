@@ -20,7 +20,8 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    Metrics = ramjet:config(metrics),
+    Metrics       = ramjet:config(metrics),
+    IgnoreMetrics = ramjet:config(no_stats_for),
     StatsInterval = ramjet:config(stats_interval),
 
     Monitor = {
@@ -38,7 +39,7 @@ init([]) ->
       ramjet_stats, {
         ramjet_stats,
         start_link,
-        [Metrics, StatsInterval]
+        [Metrics, IgnoreMetrics, StatsInterval]
        },
         permanent,
         2000,

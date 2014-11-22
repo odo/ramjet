@@ -2,18 +2,19 @@
 
 -behaviour(gen_server).
 -export([record/2, ensure_delete/1]).
--export([start_link/2, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([start_link/3, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 
 -compile({no_auto_import,[now/0]}).
 
 -define(COMPRESSEVERY, 5).
 
 -record(state, {
-    started_at    :: number(),
-    dump_interval :: number(),
-    last_dump     :: tuple(),
-    metrics       :: list(),
-    csv_dir       :: list()
+    started_at     :: number(),
+    dump_interval  :: number(),
+    last_dump      :: tuple(),
+    metrics        :: list(),
+    ignore_metrics :: list(),
+    csv_dir        :: list()
 }).
 
 %% Public API
@@ -33,18 +34,18 @@ record(Metric, Duration) when is_number(Duration) ->
     end,
     folsom_metrics:notify({counter_name(Metric), {inc, 1}}).
 
-start_link(Metrics, DumpInterval) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [Metrics, DumpInterval], []).
+start_link(Metrics, IgnoreMetrics, DumpInterval) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [Metrics, IgnoreMetrics, DumpInterval], []).
 
 %% Callbacks
 
-init([Metrics, DumpInterval]) ->
-    io:format("~p: starting with metrics:~p\n", [?MODULE, Metrics]),
+init([Metrics, IgnoreMetrics, DumpInterval]) ->
+    io:format("~p: starting with metrics:~p, ignoring:~p\n", [?MODULE, Metrics, IgnoreMetrics]),
     schedule_dump(DumpInterval),
     reset_metrics(Metrics, DumpInterval),
     CSVDir = prepare_dir(),
     write_csv_headers(Metrics, CSVDir),
-    {ok, #state{ metrics = Metrics, started_at = now(), dump_interval = DumpInterval, last_dump = now(), csv_dir = CSVDir }}.
+    {ok, #state{ metrics = Metrics, ignore_metrics = IgnoreMetrics, started_at = now(), dump_interval = DumpInterval, last_dump = now(), csv_dir = CSVDir }}.
 
 
 handle_call(_Request, _From, State) ->
@@ -118,7 +119,8 @@ metric_name(Metric, Type) ->
 schedule_dump(DumpInterval) ->
     erlang:send_after(DumpInterval, self(), dump).
 
-dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, csv_dir = CSVDir }) ->
+dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, ignore_metrics = IgnoreMetrics, csv_dir = CSVDir }) ->
+    MetricsToDump = lists:subtract(Metrics, IgnoreMetrics),
     Now = now(),
     Elapsed = timer:now_diff(Now, StartedAt) / 1000 / 1000,
     Window  = timer:now_diff(Now, LastDump) / 1000 / 1000,
@@ -156,7 +158,7 @@ dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, cs
         end
     end,
 
-    Lines = lists:map(DumpLine, Metrics),
+    Lines = lists:map(DumpLine, MetricsToDump),
     {TotalCount, TotalErrors} =
     lists:foldl(
         fun({Metric, C, E, Line}, {CSum, ESum}) ->
