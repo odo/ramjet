@@ -27,8 +27,14 @@ handle_cast(_Msg, State) ->
 handle_info(check, Activity) ->
     case {has_children(ramjet_session_sup), has_children(ponos_load_generator_sup), Activity} of
         {false, false, was_active} ->
-            TotalSessions = gen_server:call(ramjet_stats, {total_sessions}),
-            io:format("test run finished, ran ~p sessions.\nbye.\n", [TotalSessions]),
+            case ramjet:config(report) of
+                true ->
+                    TotalSessions = gen_server:call(ramjet_stats, {total_sessions}),
+                    io:format("test run finished, ran ~p sessions.\nbye.\n", [TotalSessions]);
+                false ->
+                    io:format("test run finished.\nbye.\n", [])
+            end,
+
             init:stop(),
             {noreply, stopped};
         {true, _, _} ->
