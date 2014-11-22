@@ -14,6 +14,7 @@
     last_dump      :: tuple(),
     metrics        :: list(),
     ignore_metrics :: list(),
+    total_sessions :: number(),
     csv_dir        :: list()
 }).
 
@@ -45,8 +46,10 @@ init([Metrics, IgnoreMetrics, DumpInterval]) ->
     reset_metrics(Metrics, DumpInterval),
     CSVDir = prepare_dir(),
     write_csv_headers(Metrics, CSVDir),
-    {ok, #state{ metrics = Metrics, ignore_metrics = IgnoreMetrics, started_at = now(), dump_interval = DumpInterval, last_dump = now(), csv_dir = CSVDir }}.
+    {ok, #state{ metrics = Metrics, ignore_metrics = IgnoreMetrics, started_at = now(), dump_interval = DumpInterval, last_dump = now(), total_sessions = 0, csv_dir = CSVDir }}.
 
+handle_call({total_sessions}, _From, State = #state{ total_sessions = TotalSessions }) ->
+    {reply, TotalSessions, State};
 
 handle_call(_Request, _From, State) ->
     {reply, ok, State}.
@@ -54,11 +57,11 @@ handle_call(_Request, _From, State) ->
 handle_cast(_, State) ->
     {noreply, State}.
 
-handle_info(dump, State = #state{ metrics = Metrics, dump_interval = DumpInterval }) ->
-    dump(State),
+handle_info(dump, State = #state{ metrics = Metrics, dump_interval = DumpInterval, total_sessions = TotalSessions }) ->
+    SessionStarts = dump(State),
     reset_metrics(Metrics, DumpInterval),
     schedule_dump(DumpInterval),
-    {noreply, State#state{ last_dump = now() }}.
+    {noreply, State#state{ last_dump = now(), total_sessions = TotalSessions + SessionStarts }}.
 
 terminate(_Reason, _State) ->
     ok.
@@ -172,7 +175,8 @@ dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, ig
     SessionStarts  = counter_sum_from_all_nodes(counter_name(ramjet_session_start)),
     SessionRunning = lists:sum(ramjet:apply_on_all_nodes(ramjet_session_sup, child_count, [])),
     SessionLine    = io_lib:format("~.8f, ~.8f, ~p, ~p\n", [Elapsed, Window, SessionStarts, SessionRunning]),
-    file:write_file(CSVDir ++ "/sessions.csv", SessionLine, [append]).
+    file:write_file(CSVDir ++ "/sessions.csv", SessionLine, [append]),
+    SessionStarts.
 
 write_csv_headers(Metrics, CSVDir) ->
     SummaryHeader = "elapsed, window, total, successful, failed\n",

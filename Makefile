@@ -9,7 +9,7 @@ all:
 	./rebar get com
 
 start:
-	./rebar com skip_deps=true && erl -name ramjet@$(HOST) -pz ebin deps/*/ebin $(incl) -config $(CONFIG) -s ramjet
+	./rebar com skip_deps=true && erl -noshell -name ramjet@$(HOST) -pz ebin deps/*/ebin $(incl) -config $(CONFIG) -s ramjet
 
 slave:
 	./rebar com skip_deps=true && erl -noshell -name ramjet_slave@$(HOST) -pz ebin deps/*/ebin $(incl) -config $(CONFIG) -eval "ramjet:start_slave()"
