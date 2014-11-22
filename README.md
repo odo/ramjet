@@ -29,6 +29,8 @@ cd ramjet
 make
 ```
 
+Note: On FreeBSD, use gmake.
+
 ## Running an example test
 
 Run the build in example:
