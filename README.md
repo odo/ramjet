@@ -94,6 +94,7 @@ Note:
 
 * **Tasks** must be tuples with an atom as the first element.
 * **handle_task/2** must either return `{ok, NewState}` or `{error, NewState}`.
+* when **handle_task/2** crashes, the session dies and will not process any further tasks.
 
 ## Results
 
@@ -125,5 +126,5 @@ When starting the master with `make start` it will connect to the slaves and sta
 program remotely, effectivly multiplying the generated load.
 
 Note: The counters are collected from all nodes (throughput, errros, session starts, sessions running).
-Latency information is collected only fromt the master, so if a slave has higher latency than the master this will not be visible.
+Latency information is collected only from the master, so if a slave has higher latency than the master this will not be visible.
 
