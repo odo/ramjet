@@ -12,11 +12,11 @@ start() ->
     start_sessions().
 
 start_slave() ->
-    application:start(bear),
-    application:start(folsom),
-    application:start(ponos),
-    application:set_env(ramjet, report, false),
-    application:start(ramjet),
+    ok = application:start(bear),
+    ok = application:start(folsom),
+    ok = application:start(ponos),
+    ok = application:set_env(ramjet, report, false),
+    ok = application:start(ramjet),
     io:format("slave ready on ~p.\n", [host()]).
 
 connect_slaves() ->
