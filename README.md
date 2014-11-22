@@ -105,6 +105,12 @@ The panels below show different percentiles of latencies for every type of task.
 In the example we see a maximum throughput of 100 ops with no errors, a sawtooth - like spawning and a "damped" shape of the total sessions metric due to the random element in our waiting task.
 As expected latency for the `print_call_count` is 0 and for `wait` it's a uniform distribution beween 2.5 s and 7.5 s.
 
+## Rolling your own
+
+To run tests with your own handler and config file, you can pass ramjet a set of include paths and the location of your config file:
+
+`make start incl="~/src/my_app/ebin ~/src/my_app/deps/*/ebin" config=~/src/my_app/config/my_app.config`
+
 ## Clustering
 
 ramjet can be run in a cluster with one master and several slave nodes.
