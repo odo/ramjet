@@ -23,6 +23,9 @@ record(Metric, error) ->
     folsom_metrics:notify({error_counter_name(Metric), {inc, 1}});
 
 record(Metric, Duration) when is_number(Duration) ->
+    % ramjet_stats resets the histograms
+    % so they might be unavailable for a brief time
+    % we ignore those errors
     try
         folsom_metrics:notify({histogram_name(Metric), Duration})
     catch
@@ -123,9 +126,9 @@ dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, cs
     DumpLine =
     fun(Metric) ->
         Count = counter_sum_from_all_nodes(counter_name(Metric)),
+        Error = counter_sum_from_all_nodes(error_counter_name(Metric)),
         case Count > 0 of
             true ->
-                Error       = counter_sum_from_all_nodes(error_counter_name(Metric)),
                 Histogram   = folsom_metrics:get_histogram_statistics(histogram_name(Metric)),
                 Percentiles = proplists:get_value(percentile, Histogram),
                 Min         = proplists:get_value(min, Histogram),
@@ -144,10 +147,10 @@ dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, cs
                 };
             false ->
                 {
-                    Metric, 0, 0,
+                    Metric, 0, Error,
                     io_lib:format(
                         "~p, ~p, ~p, ~p, ~p, ~p, ~p, ~p, ~p, ~p, ~p\n",
-                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Error]
                     )
                 }
         end

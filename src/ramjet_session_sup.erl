@@ -24,7 +24,7 @@ init([]) ->
     SessionServer   = {
         ramjet_session,
         {ramjet_session, start_link, []},
-        transient,
+        temporary,
         1000,
         worker,
         [ramjet_session]

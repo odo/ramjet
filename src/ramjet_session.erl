@@ -43,7 +43,11 @@ handle_info(next_task, State = #state{task_state = TaskState, handler = Handler,
     self() ! next_task,
     {noreply, State#state{task_state = NewTaskState, tasks = Tasks}}.
 
-terminate(_Reason, _State) ->
+terminate(normal, _State) ->
+    ok;
+terminate(_Reason, #state{tasks = [CrashingTask|_]}) ->
+    Command = element(1, CrashingTask),
+    ramjet_stats:record(Command, error),
     ok.
 
 code_change(_OldVsn, State, _Extra) ->
