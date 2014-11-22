@@ -26,8 +26,9 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 
-handle_info(next_task, State = #state{tasks = []}) ->
-     {stop, normal, State};
+handle_info(next_task, State = #state{tasks = [], task_state = TaskState, handler = Handler}) ->
+    Handler:terminate(TaskState),
+    {stop, normal, State};
 handle_info(next_task, State = #state{task_state = TaskState, handler = Handler, tasks = [NextTask | Tasks]}) ->
     Command = element(1, NextTask),
     Before  = os:timestamp(),
@@ -37,7 +38,8 @@ handle_info(next_task, State = #state{task_state = TaskState, handler = Handler,
         ok ->
             ramjet_stats:record(Command, Elapsed);
         error ->
-            ramjet_stats:record(Command, error)
+            ramjet_stats:record(Command, error),
+            Handler:terminate(TaskState)
     end,
 
     self() ! next_task,

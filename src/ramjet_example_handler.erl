@@ -1,6 +1,6 @@
 -module(ramjet_example_handler).
 
--export([init/0, handle_task/2]).
+-export([init/0, handle_task/2, terminate/1]).
 
 -behaviour(ramjet_handler).
 
@@ -18,3 +18,6 @@ handle_task({wait, Millisecords}, TaskState) ->
 handle_task({print_call_count}, TaskState) ->
     io:format("~p: Call count: ~p\n", [self(), TaskState]),
     {ok, TaskState + 1}.
+
+terminate(_State) ->
+    noop.
