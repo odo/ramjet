@@ -9,6 +9,7 @@ start() ->
     ok = application:set_env(ramjet, report, true),
     ok = application:start(ramjet),
     connect_slaves(),
+    ramjet_inc:start(),
     start_sessions().
 
 start_slave() ->

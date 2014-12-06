@@ -14,7 +14,8 @@ start_link(Tasks, Handler) ->
 
 init([Tasks, Handler]) ->
     self() ! next_task,
-    TaskState = Handler:init(),
+    Id = ramjet_inc:inc(),
+    TaskState = Handler:init(Id),
     ramjet_stats:record(ramjet_session_start, 0),
     {ok, #state{ task_state = TaskState, tasks = Tasks, handler = Handler}}.
 

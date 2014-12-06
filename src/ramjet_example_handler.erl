@@ -1,10 +1,11 @@
 -module(ramjet_example_handler).
 
--export([init/0, handle_task/2, terminate/1]).
+-export([init/1, handle_task/2, terminate/1]).
 
 -behaviour(ramjet_handler).
 
-init() ->
+init(Id) ->
+    io:format("id: ~p\n", [Id]),
     random:seed(os:timestamp()),
     0.
 

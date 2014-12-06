@@ -10,10 +10,10 @@ I needed to test a database application using [protocol buffers](https://code.go
 
 ## Inspiration
 
-ramjet is inspired my other tools:
+ramjet is inspired by other tools:
 
 * [Tsung](http://tsung.erlang-projects.org/) is a distributed solution with many drivers and supports sessions and recording. Writing custom drivers is not straight forward, though.
-* [basho_bench](https://github.com/basho/basho_bench/) is stand alone, comes with may drivers and has very nice graphing functionality, which ramjet heavily borrows from.
+* [basho_bench](https://github.com/basho/basho_bench/) is stand alone, comes with many drivers and has very nice graphing functionality, which ramjet heavily borrows from.
 * [ponos](https://github.com/klarna/ponos) is a generator for different shapes of load. ramjet uses ponos internally.
 
 ## Requirements
@@ -70,11 +70,12 @@ Let's see what [ramjet_example_handler](https://github.com/odo/ramjet/blob/maste
 ```erlang
 -module(ramjet_example_handler).
 
--export([init/0, handle_task/2, terminate/1]).
+-export([init/1, handle_task/2, terminate/1]).
 
 -behaviour(ramjet_handler).
 
-init() ->
+init(Id) ->
+    io:format("id: ~p\n", [Id]),
     random:seed(os:timestamp()),
     0.
 
@@ -93,7 +94,9 @@ terminate(_State) ->
     noop.
 ```
 
-`init/0` returns 0 as the initial state, and `handle_task/2` either waits for a while or prints the state, depending on the task.
+Within each session, `init/1` is called with an ID starting at 1 and increasing monotonically (also across slaves).
+
+'init/1' then returns 0 as the initial state, and `handle_task/2` either waits for a while or prints the state, depending on the task.
 
 Note:
 
