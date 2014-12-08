@@ -20,20 +20,33 @@
 
 %% Public API
 
+% ramjet_stats resets the histograms and counters
+% so they might be unavailable for a brief time
+% we ignore those errors
+
 record(Metric, error) ->
-    folsom_metrics:notify({counter_name(Metric), {inc, 1}}),
-    folsom_metrics:notify({error_counter_name(Metric), {inc, 1}});
+    try
+        folsom_metrics:notify({counter_name(Metric), {inc, 1}})
+    catch
+        _:badarg -> noop
+    end,
+    try
+        folsom_metrics:notify({error_counter_name(Metric), {inc, 1}})
+    catch
+        _:badarg -> noop
+    end;
 
 record(Metric, Duration) when is_number(Duration) ->
-    % ramjet_stats resets the histograms
-    % so they might be unavailable for a brief time
-    % we ignore those errors
     try
         folsom_metrics:notify({histogram_name(Metric), Duration})
     catch
         _:{badmatch, []} -> noop
     end,
-    folsom_metrics:notify({counter_name(Metric), {inc, 1}}).
+    try
+        folsom_metrics:notify({counter_name(Metric), {inc, 1}})
+    catch
+        _:badarg -> noop
+    end.
 
 start_link(Metrics, IgnoreMetrics, DumpInterval) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [Metrics, IgnoreMetrics, DumpInterval], []).
