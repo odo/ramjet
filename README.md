@@ -109,7 +109,7 @@ terminate(_State) ->
 
 Within each session, `init/1` is called with an ID starting at 1 and increasing monotonically (also across slaves).
 
-'init/1' then returns 0 as the initial state, and `handle_task/2` either waits for a while or prints the state, depending on the task.
+`init/1` then returns 0 as the initial state, and `handle_task/2` either waits for a while or prints the state, depending on the task.
 
 Note:
 
