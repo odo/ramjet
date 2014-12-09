@@ -45,6 +45,8 @@ Now open the [result graph](https://raw.githubusercontent.com/odo/ramjet/master/
 
 `open tests/current/summary.png`
 
+## Understanding the configuration
+
 What did we just do? Let's look at the [config file](https://github.com/odo/ramjet/blob/master/config/default.config):
 ```
 [
@@ -65,7 +67,18 @@ So we ran using a handler named `ramjet_example_handler` with a set of two tasks
 The sessions where spawned using a sawtooth shape ramping up for 5s to 10ops/s. This was done by 10 load generators in parallel.
 The total duration of the spawning was 20s and we collected stats every second. No slaves were used for this test.
 
-Let's see what [ramjet_example_handler](https://github.com/odo/ramjet/blob/master/src/ramjet_example_handler.erl):
+You can also define repeating tasks as `{NumerOfRepeats, Tasks(s)}`:
+
+`[{2, {hello}}]` generates `[{hello},{hello}]` and
+
+`[{3, [{wait}, {2, {get}}]}]` will give you
+`[[[{wait},[{get},{get}]], [{wait},[{get},{get}]], [{wait},[{get},{get}]]]]`
+
+## Session handler
+
+The handler defines the actual execution of the tasks.
+
+Let's look at a handler [ramjet_example_handler](https://github.com/odo/ramjet/blob/master/src/ramjet_example_handler.erl):
 
 ```erlang
 -module(ramjet_example_handler).

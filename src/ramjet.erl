@@ -28,8 +28,9 @@ connect_slave(NodeName) ->
     pong = net_adm:ping(NodeName).
 
 start_sessions() ->
+    Tasks = tasks(),
     io:format("~p: starting sessions\n", [?MODULE]),
-    Tasks              = config(tasks),
+    io:format("tasks:~p\n", [Tasks]),
     Handler            = config(handler),
     LoadGeneratorCount = config(load_generator_count),
     Names              = [generator_name(ID) || ID <- lists:seq(1, LoadGeneratorCount)],
@@ -46,6 +47,9 @@ start_sessions() ->
 apply_on_all_nodes(Module, Fun, Args) ->
     [rpc:call(Node, Module, Fun, Args) || Node <- config(nodes)].
 
+tasks() ->
+   expand_tasks(config(tasks)).
+
 config(nodes) ->
     [node() | config(slave_nodes)];
 
@@ -53,7 +57,7 @@ config(slave_nodes) ->
     [node_name(SH) || SH <- config(slave_hosts)];
 
 config(metrics) ->
-    lists:usort([element(1, T) || T <- config(tasks)]);
+    lists:usort([element(1, T) || T <- tasks()]);
 
 config(Key) ->
     proplists:get_value(
@@ -70,3 +74,19 @@ node_name(Host) ->
 host() ->
     [_, Host] = re:split(atom_to_list(node()), "@"),
     list_to_atom(binary_to_list(Host)).
+
+expand_tasks([]) ->
+    [];
+expand_tasks([NextTask|Tasks]) ->
+    lists:flatten([expand_task(NextTask)|expand_tasks(Tasks)]).
+
+expand_task(Task) ->
+    case Task of
+        {Number, MultiTask} when is_number(Number) ->
+            SubTasks = [MultiTask||_<-lists:seq(1, Number)],
+            expand_tasks(SubTasks);
+        List when is_list(List) ->
+            expand_tasks(List);
+        Task when is_tuple(Task) ->
+            Task
+    end.
