@@ -72,7 +72,7 @@ You can also define repeating tasks as `{NumerOfRepeats, Tasks(s)}`:
 `[{2, {hello}}]` generates `[{hello},{hello}]` and
 
 `[{3, [{wait}, {2, {get}}]}]` will give you
-`[[[{wait},[{get},{get}]], [{wait},[{get},{get}]], [{wait},[{get},{get}]]]]`
+`[{wait},{get},{get},{wait},{get},{get},{wait},{get},{get}]`
 
 ## Session handler
 
