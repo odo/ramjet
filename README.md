@@ -53,6 +53,7 @@ What did we just do? Let's look at the [config file](https://github.com/odo/ramj
     {ramjet, [
         { handler, ramjet_example_handler },
         { tasks, [{wait, 5000}, {print_call_count}] },
+        { no_stats_for, [] },
         { load_fun, make_sawtooth }, % see https://github.com/klarna/ponos
         { load_fun_args, [5, 10] }, % session_starts/second/generator
         { load_generator_count, 10}, % start n generators, hence n * session_starts/second
