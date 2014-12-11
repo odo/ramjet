@@ -16,3 +16,6 @@ slave:
 
 graph:
 	Rscript --vanilla priv/summary.r -i tests/current
+
+debug_run:
+	./rebar com skip_deps=true && erl -noshell -pz ebin deps/*/ebin $(incl) -config $(CONFIG) -eval "ramjet_debug:run()."

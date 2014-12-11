@@ -68,6 +68,8 @@ So we ran using a handler named `ramjet_example_handler` with a set of two tasks
 The sessions where spawned using a sawtooth shape ramping up for 5s to 10ops/s. This was done by 10 load generators in parallel.
 The total duration of the spawning was 20s and we collected stats every second. No slaves were used for this test.
 
+For details on the different load shapes see [ponos_load_specs](https://github.com/klarna/ponos/blob/master/src/ponos_load_specs.erl).
+
 You can also define repeating tasks as `{NumerOfRepeats, Tasks(s)}`:
 
 `[{2, {hello}}]` generates `[{hello},{hello}]` and
@@ -133,9 +135,16 @@ As the latency of the `wait` task is not very interesting and might screw up the
 
 ## Rolling your own
 
-To run tests with your own handler and config file, you can pass ramjet a set of include paths and the location of your config file:
+To run tests with your own handler and config file, you can pass ramjet a set of include paths and the location of your config file.
+This applies to all commands like `slave` and `debug_run`.
 
 `make start incl="~/src/my_app/ebin ~/src/my_app/deps/*/ebin" config=~/src/my_app/config/my_app.config`
+
+## Debugging your handler
+
+A single instance of a handler can be run with the current tasks while printing intermadiate states:
+
+`make debug_run`
 
 ## Clustering
 

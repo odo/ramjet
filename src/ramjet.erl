@@ -1,6 +1,6 @@
 -module(ramjet).
 
--export([start/0, start_slave/0, apply_on_all_nodes/3, config/1]).
+-export([start/0, start_slave/0, apply_on_all_nodes/3, config/1, tasks/0, expand_tasks/1]).
 
 start() ->
     ok = application:start(bear),
