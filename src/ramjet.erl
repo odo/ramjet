@@ -10,6 +10,7 @@ start() ->
     ok = application:start(ramjet),
     connect_slaves(),
     ramjet_inc:start(),
+    init_handler(),
     start_sessions().
 
 start_slave() ->
@@ -43,6 +44,10 @@ start_sessions() ->
     ],
     [apply_on_all_nodes(ponos, add_load_generators, [[Arg]]) || Arg <- Args],
     apply_on_all_nodes(ponos, init_load_generators, [Names]).
+
+init_handler() ->
+    Handler = config(handler),
+    apply_on_all_nodes(Handler, init_once, []).
 
 apply_on_all_nodes(Module, Fun, Args) ->
     [rpc:call(Node, Module, Fun, Args) || Node <- config(nodes)].

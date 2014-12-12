@@ -1,8 +1,11 @@
 -module(ramjet_example_handler).
 
--export([init/1, handle_task/2, terminate/1]).
+-export([init_once/0, init/1, handle_task/2, terminate/1]).
 
 -behaviour(ramjet_handler).
+
+init_once() ->
+    noop.
 
 init(Id) ->
     io:format("id: ~p\n", [Id]),

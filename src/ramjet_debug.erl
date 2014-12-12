@@ -7,6 +7,8 @@ run() ->
     Tasks   = ramjet:tasks(),
     Handler = ramjet:config(handler),
     io:format("\ndebug_run: tasks: ~p\n", [Tasks]),
+    io:format("debug_run: calling ~p:init_once()\n", [Handler]),
+    Handler:init_once(),
     io:format("debug_run: calling ~p:init(1)\n", [Handler]),
     InitState = Handler:init(1),
     io:format("debug_run: initial state is: ~p\n\n", [InitState]),
