@@ -11,7 +11,7 @@ I needed to test a database application using [protocol buffers](https://code.go
 ## Inspiration
 
 ramjet is inspired by other tools:
-
+* [JMeter](https://jmeter.apache.org/) is very powerful but complex and limitet by the GUI-approach. Also Java.
 * [Tsung](http://tsung.erlang-projects.org/) is a distributed solution with many drivers and supports sessions and recording. Writing custom drivers is not straight forward, though.
 * [basho_bench](https://github.com/basho/basho_bench/) is stand alone, comes with many drivers and has very nice graphing functionality, which ramjet heavily borrows from.
 * [ponos](https://github.com/klarna/ponos) is a generator for different shapes of load. ramjet uses ponos internally.
