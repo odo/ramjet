@@ -49,7 +49,7 @@ if (nrow(b$latencies) == 0)
 png(file = opt$outfile, width = opt$width, height = opt$height)
 
 # First plot req/sec from summary
-plot1 <- qplot(elapsed, successful / window, data = b$summary,
+plot_throughput <- qplot(elapsed, successful / window, data = b$summary,
                 geom = c("smooth", "point"),
                 xlab = "Elapsed Secs", ylab = opt$ylabel1stgraph,
                 main = "Throughput") +
@@ -62,18 +62,25 @@ plot1 <- qplot(elapsed, successful / window, data = b$summary,
 
                 scale_colour_manual("Response", values = c("#FF665F", "#188125"))
 
-plot2 <- qplot(elapsed, starts / window, data = b$sessions,
+plot_sessions_running <- qplot(elapsed, running, data = b$sessions,
                  geom = c("point"),
-                 xlab = "Elapsed Secs", ylab = opt$ylabel1stgraph,
-                 main = "Sessions") +
-
-                 geom_point(aes(y = starts / window, colour = "starts"), size=2.0) +
-                 geom_line( aes(y = starts / window, colour = "starts"), size=0.1) +
+                 xlab = "Elapsed Secs", ylab = "# sessions",
+                 main = "Sessions Running") +
 
                  geom_point(aes(y = running, colour = "running"), size=2.0) +
                  geom_line( aes(y = running, colour = "running"), size=0.1) +
 
-                 scale_colour_manual("Starts", values = c("#188125", "#FF665F"))
+                 scale_colour_manual("Starts", values = c("#000000"))
+
+plot_sessions_started <- qplot(elapsed, starts / window, data = b$sessions,
+                 geom = c("point"),
+                 xlab = "Elapsed Secs", ylab = opt$ylabel1stgraph,
+                 main = "Sessions Started") +
+
+                 geom_point(aes(y = starts / window, colour = "starts"), size=2.0) +
+                 geom_line( aes(y = starts / window, colour = "starts"), size=0.1) +
+
+                 scale_colour_manual("Starts", values = c("#188125"))
 
 # Setup common elements of the latency plots
 latency_plot <- ggplot(b$latencies, aes(x = elapsed)) +
@@ -81,23 +88,30 @@ latency_plot <- ggplot(b$latencies, aes(x = elapsed)) +
                    labs(x = "Elapsed Secs", y = "Latency (ms)")
 
 # Plot median, mean and 95th percentiles
-plot3 <- latency_plot + labs(title = "Mean, Median, and 95th Percentile Latency") +
-            geom_smooth(aes(y = median, color = "median"), size=0.5) +
-            geom_point(aes(y = median, color = "median"), size=2.0) +
-
+plot_median_mean <- latency_plot + labs(title = "Mean and Median Latency") +
             geom_smooth(aes(y = mean, color = "mean"), size=0.5) +
             geom_point(aes(y = mean, color = "mean"), size=2.0) +
 
+            geom_smooth(aes(y = median, color = "median"), size=0.5) +
+            geom_point(aes(y = median, color = "median"), size=2.0) +
+
+            scale_colour_manual("Percentile", values = c("#FFA700", "#188125"))
+            # scale_color_hue("Percentile",
+            #                 breaks = c("X95th", "mean", "median"),
+            #                 labels = c("95th", "Mean", "Median"))
+
+# Plot median, mean and 95th percentiles
+plot_95 <- latency_plot + labs(title = "95th Percentile Latency") +
             geom_smooth(aes(y = X95th, color = "95th"), size=0.5) +
             geom_point(aes(y = X95th, color = "95th"), size=2.0) +
 
-            scale_colour_manual("Percentile", values = c("#FF665F", "#009D91", "#FFA700"))
+            scale_colour_manual("Percentile", values = c("#FF665F", "#009D91"))
             # scale_color_hue("Percentile",
             #                 breaks = c("X95th", "mean", "median"),
             #                 labels = c("95th", "Mean", "Median"))
 
 # Plot 99th percentile
-plot4 <- latency_plot + labs(title = "99th Percentile Latency") +
+plot_99 <- latency_plot + labs(title = "99th Percentile Latency") +
             geom_smooth(aes(y = X99th, color = "99th"), size=0.5) +
             geom_point(aes(y = X99th, color = "99th"), size=2.0) +
             scale_colour_manual("Percentile", values = c("#FF665F", "#009D91"))
@@ -106,28 +120,38 @@ plot4 <- latency_plot + labs(title = "99th Percentile Latency") +
             #                 labels = c("99.9th", "99th"))
 
 # Plot 99.9th percentile
-plot5 <- latency_plot + labs(title = "99.9th Percentile Latency") +
+plot_999 <- latency_plot + labs(title = "99.9th Percentile Latency") +
             geom_smooth(aes(y = X99_9th, color = "99.9th"), size=0.5) +
             geom_point(aes(y = X99_9th, color = "99.9th"), size=2.0) +
             scale_colour_manual("Percentile", values = c("#FF665F", "#009D91", "#FFA700"))
 
 # Plot 100th percentile
-plot6 <- latency_plot + labs(title = "Maximum Latency") +
+plot_max <- latency_plot + labs(title = "Maximum Latency") +
             geom_smooth(aes(y = max, color = "max"), size=0.5) +
             geom_point(aes(y = max, color = "max"), size=2.0) +
             scale_colour_manual("Percentile", values = c("#FF665F", "#009D91", "#FFA700"))
 
+plot_upper_percentiles <- latency_plot + labs(title = "95th, 99th, 99.9th and 100th Percentile") +
+            geom_smooth(aes(y = X95th, color = "95th"), size=0.5) +
+            geom_point(aes(y = X95th, color = "95th"), size=2.0) +
+            geom_smooth(aes(y = X99th, color = "99th"), size=0.5) +
+            geom_point(aes(y = X99th, color = "99th"), size=2.0) +
+            geom_smooth(aes(y = X99_9th, color = "99.9th"), size=0.5) +
+            geom_point(aes(y = X99_9th, color = "99.9th"), size=2.0) +
+            geom_smooth(aes(y = max, color = "max"), size=0.5) +
+            geom_point(aes(y = max, color = "max"), size=2.0) +
+            scale_colour_manual("Percentile", values = c("#FFFE00", "#FFA900", "#FF5600", "#FF0000"))
+
 grid.newpage()
 
-pushViewport(viewport(layout = grid.layout(6, 1)))
+pushViewport(viewport(layout = grid.layout(5, 1)))
 
 vplayout <- function(x,y) viewport(layout.pos.row = x, layout.pos.col = y)
 
-print(plot1, vp = vplayout(1,1))
-print(plot2, vp = vplayout(2,1))
-print(plot3, vp = vplayout(3,1))
-print(plot4, vp = vplayout(4,1))
-print(plot5, vp = vplayout(5,1))
-print(plot6, vp = vplayout(6,1))
+print(plot_throughput, vp = vplayout(1,1))
+print(plot_sessions_running, vp = vplayout(2,1))
+print(plot_sessions_started, vp = vplayout(3,1))
+print(plot_median_mean, vp = vplayout(4,1))
+print(plot_upper_percentiles, vp = vplayout(5,1))
 
 dev.off()
