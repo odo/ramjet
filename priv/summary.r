@@ -32,7 +32,7 @@ if (!is.null(opt$help))
 
 # Initialize defaults for opt
 if (is.null(opt$width))   { opt$width   = 1280 }
-if (is.null(opt$height))  { opt$height  = 1280 }
+if (is.null(opt$height))  { opt$height  = 1500 }
 if (is.null(opt$indir))   { opt$indir  = "current"}
 if (is.null(opt$outfile)) { opt$outfile = file.path(opt$indir, "summary.png") }
 if (is.null(opt$ylabel1stgraph)) { opt$ylabel1stgraph = "Op/sec" }
@@ -57,10 +57,17 @@ plot_throughput <- qplot(elapsed, successful / window, data = b$summary,
                 geom_smooth(aes(y = successful / window, colour = "ok"), size=0.5) +
                 geom_point(aes(y = successful / window, colour = "ok"), size=2.0) +
 
+                scale_colour_manual("Response", values = c("#188125"))
+
+plot_error <- qplot(elapsed, failed / window, data = b$summary,
+                geom = c("smooth", "point"),
+                xlab = "Elapsed Secs", ylab = opt$ylabel1stgraph,
+                main = "Errors") +
+
                 geom_smooth(aes(y = failed / window, colour = "error"), size=0.5) +
                 geom_point(aes(y = failed / window, colour = "error"), size=2.0) +
 
-                scale_colour_manual("Response", values = c("#FF665F", "#188125"))
+                scale_colour_manual("Response", values = c("#FF665F"))
 
 plot_sessions_running <- qplot(elapsed, running, data = b$sessions,
                  geom = c("point"),
@@ -144,14 +151,15 @@ plot_upper_percentiles <- latency_plot + labs(title = "95th, 99th, 99.9th and 10
 
 grid.newpage()
 
-pushViewport(viewport(layout = grid.layout(5, 1)))
+pushViewport(viewport(layout = grid.layout(6, 1)))
 
 vplayout <- function(x,y) viewport(layout.pos.row = x, layout.pos.col = y)
 
 print(plot_throughput, vp = vplayout(1,1))
-print(plot_sessions_running, vp = vplayout(2,1))
-print(plot_sessions_started, vp = vplayout(3,1))
-print(plot_median_mean, vp = vplayout(4,1))
-print(plot_upper_percentiles, vp = vplayout(5,1))
+print(plot_error, vp = vplayout(2,1))
+print(plot_sessions_running, vp = vplayout(3,1))
+print(plot_sessions_started, vp = vplayout(4,1))
+print(plot_median_mean, vp = vplayout(5,1))
+print(plot_upper_percentiles, vp = vplayout(6,1))
 
 dev.off()
