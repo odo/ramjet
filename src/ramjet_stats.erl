@@ -2,7 +2,7 @@
 
 -behaviour(gen_server).
 -export([record/2, ensure_delete/1]).
--export([start_link/3, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([start_link/3, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3, prepare_dir/0]).
 
 -compile({no_auto_import,[now/0]}).
 
@@ -90,8 +90,8 @@ prepare_dir() ->
     {ok, WD}     = file:get_cwd(),
     CurrentDir   = "tests/current",
     file:delete(CurrentDir),
-    {ok, Config} = init:get_argument(config),
-    {ok, _}      = file:copy(Config, CSVDir ++ "/test.config"),
+    Config       = application:get_all_env(ramjet),
+    file:write_file(CSVDir ++ "/test.config", io_lib:fwrite("~p.\n",[Config])),
     ok           = file:make_symlink(WD ++ "/" ++ CSVDir, CurrentDir),
     CSVDir.
 
