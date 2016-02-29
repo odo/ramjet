@@ -118,7 +118,7 @@ terminate(_State) ->
 
 On each node `init_once/0` is called, well - once. Use it to start any application your handler depends on.
 
-Within each session, `init/1` is called with an ID starting at 1 and increasing monotonically (also across slaves).
+Within each session, `init/1` is called with an ID starting at 1 and increasing monotonically (also across slaves). It is there to compute the inital state.
 
 `init/1` then returns `0` as the initial state, and `handle_task/2` either waits for a while or prints the state, depending on the task.
 
