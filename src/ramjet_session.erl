@@ -35,19 +35,29 @@ handle_info(next_task, State = #state{task_state = TaskState, handler = Handler,
     Before  = os:timestamp(),
     {Outcome, NewTaskState}   =  Handler:handle_task(NextTask, TaskState),
     Elapsed = timer:now_diff(os:timestamp(), Before) * 1.0,
-    case Outcome of
-        ok ->
-            ramjet_stats:record(Command, Elapsed);
-        halt ->
-            ramjet_stats:record(Command, Elapsed),
-            Handler:terminate(TaskState);
-        error ->
-            ramjet_stats:record(Command, error),
-            Handler:terminate(TaskState)
-    end,
 
-    self() ! next_task,
-    {noreply, State#state{task_state = NewTaskState, tasks = Tasks}}.
+    Continue =
+        case Outcome of
+            ok ->
+                ramjet_stats:record(Command, Elapsed),
+                true;
+            halt ->
+                ramjet_stats:record(Command, Elapsed),
+                Handler:terminate(TaskState),
+                false;
+            error ->
+                ramjet_stats:record(Command, error),
+                Handler:terminate(TaskState),
+                true
+        end,
+
+    case Continue of
+        true ->
+            self() ! next_task,
+            {noreply, State#state{task_state = NewTaskState, tasks = Tasks}};
+        false ->
+            {stop, normal, State}
+    end.
 
 terminate(normal, _State) ->
     ok;
