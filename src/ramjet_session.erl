@@ -38,6 +38,9 @@ handle_info(next_task, State = #state{task_state = TaskState, handler = Handler,
     case Outcome of
         ok ->
             ramjet_stats:record(Command, Elapsed);
+        halt ->
+            ramjet_stats:record(Command, Elapsed),
+            Handler:terminate(TaskState);
         error ->
             ramjet_stats:record(Command, error),
             Handler:terminate(TaskState)
