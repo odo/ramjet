@@ -19,6 +19,7 @@ ramjet is inspired by other tools:
 ## Requirements
 
 * [Erlang/OTP](http://www.erlang.org/), tested with version 17.3 .
+* [Rebar 3](http://www.rebar3.org) on your path
 * [R](http://www.r-project.org/) for plotting result graphs.
 
 ## Installation
