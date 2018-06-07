@@ -60,7 +60,7 @@ init([]) ->
     Children =
     case ramjet:config(report) of
         true ->
-            [Monitor, Stats, SessionSup];
+            [Monitor, SessionSup, Stats];
         false ->
             [Monitor, SessionSup]
     end,
