@@ -32,9 +32,9 @@ handle_info(next_task, State = #state{tasks = [], task_state = TaskState, handle
     {stop, normal, State};
 handle_info(next_task, State = #state{task_state = TaskState, handler = Handler, tasks = [NextTask | Tasks]}) ->
     Command = element(1, NextTask),
-    Before  = os:timestamp(),
+    Before  = erlang:system_time(),
     {Outcome, NewTaskState}   =  Handler:handle_task(NextTask, TaskState),
-    Elapsed = timer:now_diff(os:timestamp(), Before) * 1.0,
+    Elapsed = float(erlang:convert_time_unit(erlang:system_time() - Before, native, microsecond)),
     case Outcome of
         ok ->
             ramjet_stats:record(Command, Elapsed);

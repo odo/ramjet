@@ -18,7 +18,7 @@ ramjet is inspired by other tools:
 
 ## Requirements
 
-* [Erlang/OTP](http://www.erlang.org/), tested with version 17.3 .
+* [Erlang/OTP](http://www.erlang.org/), tested with version 20.
 * [R](http://www.r-project.org/) for plotting result graphs.
 
 ## Installation
@@ -95,12 +95,11 @@ init_once() ->
 
 init(Id) ->
     io:format("id: ~p\n", [Id]),
-    random:seed(os:timestamp()),
     0.
 
 handle_task({wait, Millisecords}, TaskState) ->
     WaitFor = (round(
-        Millisecords + (random:uniform() * Millisecords) - Millisecords / 2
+        Millisecords + (rand:uniform() * Millisecords) - Millisecords / 2
     )),
     timer:sleep(WaitFor),
     {ok, TaskState + 1};
