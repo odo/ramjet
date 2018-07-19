@@ -31,8 +31,8 @@ if (!is.null(opt$help))
   }
 
 # Initialize defaults for opt
-if (is.null(opt$width))   { opt$width   = 1280 }
-if (is.null(opt$height))  { opt$height  = 1500 }
+if (is.null(opt$width))   { opt$width   = 5120 }
+if (is.null(opt$height))  { opt$height  = 6000 }
 if (is.null(opt$indir))   { opt$indir  = "current"}
 if (is.null(opt$outfile)) { opt$outfile = file.path(opt$indir, "summary.png") }
 if (is.null(opt$ylabel1stgraph)) { opt$ylabel1stgraph = "Op/sec" }
@@ -46,7 +46,7 @@ if (nrow(b$latencies) == 0)
   stop("No latency information available to analyze in ", opt$indir)
 }
 
-png(file = opt$outfile, width = opt$width, height = opt$height)
+png(file = opt$outfile, width = opt$width, height = opt$height, res = 300)
 
 # First plot req/sec from summary
 plot_throughput <- qplot(elapsed, successful / window, data = b$summary,
