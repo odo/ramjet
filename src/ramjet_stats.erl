@@ -4,8 +4,6 @@
 -export([record/2, ensure_delete/1]).
 -export([start_link/3, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3, prepare_dir/0]).
 
--compile({no_auto_import,[now/0]}).
-
 -define(COMPRESSEVERY, 5).
 
 -record(state, {
@@ -59,7 +57,7 @@ init([Metrics, IgnoreMetrics, DumpInterval]) ->
     reset_metrics(Metrics, DumpInterval),
     CSVDir = prepare_dir(),
     write_csv_headers(Metrics, CSVDir),
-    {ok, #state{ metrics = Metrics, ignore_metrics = IgnoreMetrics, started_at = now(), dump_interval = DumpInterval, last_dump = now(), total_sessions = 0, csv_dir = CSVDir }}.
+    {ok, #state{ metrics = Metrics, ignore_metrics = IgnoreMetrics, started_at = timestamp(), dump_interval = DumpInterval, last_dump = timestamp(), total_sessions = 0, csv_dir = CSVDir }}.
 
 handle_call({total_sessions}, _From, State = #state{ total_sessions = TotalSessions }) ->
     {reply, TotalSessions, State};
@@ -74,7 +72,7 @@ handle_info(dump, State = #state{ metrics = Metrics, dump_interval = DumpInterva
     SessionStarts = dump(State),
     reset_metrics(Metrics, DumpInterval),
     schedule_dump(DumpInterval),
-    {noreply, State#state{ last_dump = now(), total_sessions = TotalSessions + SessionStarts }}.
+    {noreply, State#state{ last_dump = timestamp(), total_sessions = TotalSessions + SessionStarts }}.
 
 terminate(_Reason, _State) ->
     ok.
@@ -96,7 +94,7 @@ prepare_dir() ->
     CSVDir.
 
 csv_dir() ->
-    {{Ye, Mo, Da}, {Ho, Mi, Se}} = calendar:now_to_local_time(now()),
+    {{Ye, Mo, Da}, {Ho, Mi, Se}} = calendar:gregorian_seconds_to_datetime(timestamp()),
     Dir = lists:flatten(io_lib:format("~4..0B-~2..0B-~2..0BT~2..0B:~2..0B:~2..0B", [Ye, Mo, Da, Ho, Mi, Se])),
     "tests/" ++ Dir.
 
@@ -137,9 +135,9 @@ schedule_dump(DumpInterval) ->
 
 dump(#state{ started_at = StartedAt, last_dump = LastDump, metrics = Metrics, ignore_metrics = IgnoreMetrics, csv_dir = CSVDir }) ->
     MetricsToDump = lists:subtract(Metrics, IgnoreMetrics),
-    Now = now(),
-    Elapsed = timer:now_diff(Now, StartedAt) / 1000 / 1000,
-    Window  = timer:now_diff(Now, LastDump) / 1000 / 1000,
+    End = timestamp(),
+    Elapsed = float(erlang:convert_time_unit(End - StartedAt, native, second)),
+    Window  = float(erlang:convert_time_unit(End - LastDump, native, second)),
 
     DumpLine =
     fun(Metric) ->
@@ -200,8 +198,7 @@ write_csv_headers(Metrics, CSVDir) ->
     [file:write_file(CSVDir ++ "/" ++ atom_to_list(Metric) ++ "_latencies.csv", StatsHeader)
      || Metric <- Metrics].
 
-now() ->
-    os:timestamp().
+timestamp() -> erlang:system_time().
 
 counter_sum_from_all_nodes(CounterName) ->
     lists:sum(ramjet:apply_on_all_nodes(folsom_metrics, get_metric_value, [CounterName])).
