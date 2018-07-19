@@ -1,8 +1,7 @@
-.rebar
-.eunit
 deps
 ebin/
 log/
 .DS_Store
 erl_crash.dump
 tags
+_build
