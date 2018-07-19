@@ -1,0 +1,12 @@
+{"1.1.0",
+[{<<"bear">>,{pkg,<<"bear">>,<<"0.8.5">>},1},
+ {<<"folsom">>,{pkg,<<"folsom">>,<<"0.8.5">>},0},
+ {<<"ponos">>,
+  {git,"git@github.com:klarna/ponos.git",
+       {ref,"5b202cc3dda2aca2c08de1dba152681f26a8f8dc"}},
+  0}]}.
+[
+{pkg_hash,[
+ {<<"bear">>, <<"E95FCA1627CD9E15BAF93CE0A52AFF16917BAF325F0EE65B88CD715376CD2344">>},
+ {<<"folsom">>, <<"94A027B56FE84FEED264F9B33CB4C6AC9A801FAD84B87DBDA0836CE83C3B8D69">>}]}
+].
