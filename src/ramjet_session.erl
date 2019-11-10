@@ -13,7 +13,7 @@ start_link(Tasks, Handler) ->
 %% Callbacks
 
 init([Tasks, Handler]) ->
-    self() ! next_task,
+    self() ! ramjet_next_task,
     Id = ramjet_inc:inc(),
     TaskState = Handler:init(Id),
     ramjet_stats:record(ramjet_session_start, 0),
@@ -27,10 +27,10 @@ handle_cast(_Msg, State) ->
     {noreply, State}.
 
 
-handle_info(next_task, State = #state{tasks = [], task_state = TaskState, handler = Handler}) ->
+handle_info(ramjet_next_task, State = #state{tasks = [], task_state = TaskState, handler = Handler}) ->
     Handler:terminate(TaskState),
     {stop, normal, State};
-handle_info(next_task, State = #state{task_state = TaskState, handler = Handler, tasks = [NextTask | Tasks]}) ->
+handle_info(ramjet_next_task, State = #state{task_state = TaskState, handler = Handler, tasks = [NextTask | Tasks]}) ->
     Command = element(1, NextTask),
     Before  = erlang:system_time(),
     {Outcome, NewTaskState}   =  Handler:handle_task(NextTask, TaskState),
@@ -46,8 +46,11 @@ handle_info(next_task, State = #state{task_state = TaskState, handler = Handler,
             Handler:terminate(TaskState)
     end,
 
-    self() ! next_task,
-    {noreply, State#state{task_state = NewTaskState, tasks = Tasks}}.
+    self() ! ramjet_next_task,
+    {noreply, State#state{task_state = NewTaskState, tasks = Tasks}};
+  handle_info(Message, State = #state{task_state = TaskState, handler = Handler}) ->
+      {ok, NewTaskState}   =  Handler:handle_info(Message, TaskState),
+      {noreply, State#state{task_state = NewTaskState}}.
 
 terminate(normal, _State) ->
     ok;
