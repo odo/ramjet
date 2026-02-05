@@ -33,7 +33,7 @@ Note: On FreeBSD, use gmake.
 
 ## Running an example test
 
-Run the build in example:
+Run the built in example:
 
 `make start`
 
